@@ -1,6 +1,8 @@
 package com.pm.ridepay.config;
 
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,12 @@ public class FirebaseConfig {
     public void initialize() throws IOException{
         if(FirebaseApp.getApps().isEmpty()){
             FileInputStream serviceAccount=new FileInputStream(serviceAccountPath);
+
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .build();
+
+            FirebaseApp.initializeApp(options);
         }
     }
 }
