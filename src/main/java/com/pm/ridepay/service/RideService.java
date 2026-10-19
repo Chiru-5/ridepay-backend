@@ -1,18 +1,21 @@
 package com.pm.ridepay.service;
 
 
+import com.pm.ridepay.dto.request.AdjustRideRequest;
 import com.pm.ridepay.dto.request.StartRideRequest;
 import com.pm.ridepay.dto.response.PaymentDTO;
 import com.pm.ridepay.dto.response.RideStatusResponse;
 import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.entity.Payment;
 import com.pm.ridepay.entity.Ride;
+import com.pm.ridepay.enums.PaymentStatus;
 import com.pm.ridepay.enums.RideStatus;
 import com.pm.ridepay.enums.VerificationStatus;
 import com.pm.ridepay.exception.*;
 import com.pm.ridepay.repository.DriverRepository;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +81,7 @@ public class RideService {
         Ride ride=getOwnedRide(driverId, rideId);
         List<Payment> payments=paymentRepository.findByRideId(rideId);
 
-        return toresponse(ride, payments);
+        return toResponse(ride, payments);
     }
 
     public RideStatusResponse cancelRide(Long driverId, Long rideId){
@@ -95,6 +98,83 @@ public class RideService {
 
         List<Payment> payments=paymentRepository.findByRideId(rideId);
         return toResponse(ride, payments);
+    }
+
+
+
+    public RideStatusResponse adjustRide(Long driverId, Long rideId, AdjustRideRequest request){
+        Ride ride=getOwnedRide(driverId, rideId);
+
+        if(ride.getStatus()!=RideStatus.ACTIVE){
+            throw new InvalidRideStateException("Only an active ride can be adjusted");
+        }
+
+        boolean hasManualAdjustment=request.getManualAdjustment()!= null;
+        boolean hasAssignPayment=request.getAssignPaymentId()!= null;
+
+        if(hasManualAdjustment==hasAssignPayment){
+            throw new InvalidRideStateException("Provide exactly one of manualAdjustment or assignPaymentId");
+        }
+
+        if(hasAssignPayment){
+            assignPendingPayment(driverId, ride, request.getAssignPaymentId());
+        }
+        else{
+            applyManualAdjustment(ride, request.getManualAdjustment());
+        }
+
+        rideRepository.save(ride);
+
+
+        List<Payment> payments=paymentRepository.findByRideId(rideId);
+        return toResponse(ride, payments);
+    }
+
+
+    public void applyPaymentAndCheckCompletion(Ride ride, BigDecimal amount){
+        ride.setCollectedAmount(ride.getCollectedAmount().add(amount));
+
+
+        if(ride.getCollectedAmount().compareTo(ride.getTargetAmount())>=0){
+            ride.setStatus(RideStatus.COMPLETED);
+            ride.setCompletedAt(LocalDateTime.now());
+        }
+    }
+
+
+    private void assignPendingPayment(Long driverId, Ride ride, Long paymentId){
+        Payment payment=paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new PaymentNotFoundException("Payment not found"));
+
+        if(!payment.getDriver().getId().equals(driverId)){
+            throw new PaymentNotFoundException("Payment not found");
+        }
+
+        if(payment.getPaymentStatus()!= PaymentStatus.PENDING_UNASSIGNED){
+            throw new InvalidRideStateException("This payment is already assigned");
+        }
+
+        payment.setRide(ride);
+        payment.setPaymentStatus(PaymentStatus.MATCHED);
+        paymentRepository.save(payment);
+
+        applyPaymentAndCheckCompletion(ride, payment.getAmount());
+    }
+
+    private void applyManualAdjustment(Ride ride, Integer adjustment){
+        BigDecimal delta=ride.getFarePerPerson().multiply(BigDecimal.valueOf(adjustment));
+        BigDecimal newTotal=ride.getCollectedAmount().add(delta);
+
+        if(newTotal.compareTo(BigDecimal.ZERO)<0){
+            throw new InvalidRideStateException("Adjustment would make collected amount negative");
+        }
+
+        ride.setCollectedAmount(newTotal);
+
+        if(newTotal.compareTo(ride.getTargetAmount())>=0){
+            ride.setStatus(RideStatus.COMPLETED);
+            ride.setCompletedAt(LocalDateTime.now());
+        }
     }
 
 

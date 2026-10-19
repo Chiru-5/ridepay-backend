@@ -1,6 +1,7 @@
 package com.pm.ridepay.repository;
 
 
+import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.entity.Payment;
 import com.pm.ridepay.enums.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,6 +23,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 //    It retrieves the unmatched payments list (PENDING_UNASSIGNED) for the drivers "assign this payment" screen
 
     List<Payment> findByRideId(Long rideId);
+
+    Long driver(Driver driver);
 //    It gets the every payment belonging to one ride ---> used to display the live running list on the tracker screen
 
 }

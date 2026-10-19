@@ -2,6 +2,7 @@ package com.pm.ridepay.controller;
 
 
 
+import com.pm.ridepay.dto.request.AdjustRideRequest;
 import com.pm.ridepay.dto.request.StartRideRequest;
 import com.pm.ridepay.dto.response.RideStatusResponse;
 import com.pm.ridepay.service.RideService;
@@ -45,5 +46,14 @@ public class RideController {
 
     private Long getAuthenticatedDriverId(){
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
+
+
+    @PostMapping("/{rideId}/adjust")
+    public ResponseEntity<RideStatusResponse> adjustRide(@PathVariable Long rideId,
+                                                         @RequestBody AdjustRideRequest request){
+        Long driverId=getAuthenticatedDriverId();
+        RideStatusResponse response=rideService.adjustRide(driverId, rideId, request);
+        return ResponseEntity.ok(response);
     }
 }
