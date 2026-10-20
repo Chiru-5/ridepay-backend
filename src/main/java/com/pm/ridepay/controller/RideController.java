@@ -28,7 +28,7 @@ public class RideController {
     }
 
 
-
+//    fetches the current live status of one specific ride.
     @GetMapping("/{rideId}/status")
     public ResponseEntity<RideStatusResponse> getStatus(@PathVariable Long rideId){
         Long driverId=getAuthenticatedDriverId();
@@ -37,6 +37,7 @@ public class RideController {
     }
 
 
+//    Lets a driver cancel the ride if they started by mistake
     @PostMapping("/{rideId}/cancel")
     public ResponseEntity<RideStatusResponse> cancelRide(@PathVariable Long rideId){
         Long driverId=getAuthenticatedDriverId();

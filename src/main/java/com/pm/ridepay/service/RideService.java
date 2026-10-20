@@ -76,7 +76,7 @@ public class RideService {
         return toResponse(ride, List.of());
     }
 
-
+//    Called through controller
     public RideStatusResponse getStatus(Long driverId, Long rideId){
         Ride ride=getOwnedRide(driverId, rideId);
         List<Payment> payments=paymentRepository.findByRideId(rideId);
@@ -84,6 +84,7 @@ public class RideService {
         return toResponse(ride, payments);
     }
 
+//    Called through controller
     public RideStatusResponse cancelRide(Long driverId, Long rideId){
         Ride ride=getOwnedRide(driverId, rideId);
 
@@ -101,7 +102,7 @@ public class RideService {
     }
 
 
-
+//    It handles the two manual-correction paths we designed --> assigning a stray unmatched payments to this ride, or manually adjusting the count up/ down
     public RideStatusResponse adjustRide(Long driverId, Long rideId, AdjustRideRequest request){
         Ride ride=getOwnedRide(driverId, rideId);
 
@@ -130,7 +131,7 @@ public class RideService {
         return toResponse(ride, payments);
     }
 
-
+// This method is used to for: has this ride collected enough money yet?/ --> adds an amount to the running total, and flips the ride to COMPLETED if the target's been reached
     public void applyPaymentAndCheckCompletion(Ride ride, BigDecimal amount){
         ride.setCollectedAmount(ride.getCollectedAmount().add(amount));
 
