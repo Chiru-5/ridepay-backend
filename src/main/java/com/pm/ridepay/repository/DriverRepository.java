@@ -13,4 +13,7 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
     Optional<Driver> findByPhoneNumber(String phoneNumber);
 //    when a driver tries to log in, you look him up by phone number to check if he exists before sending/ verifying an OTP
 //    This we will be using in AuthService for verifying the OTP
+
+    Optional<Driver> findByRazorpayQrId(String razorpayQrId);
+//    This method helps t find the user by their razorpayQrId
 }
