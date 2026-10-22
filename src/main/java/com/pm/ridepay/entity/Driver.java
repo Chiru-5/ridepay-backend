@@ -42,7 +42,7 @@ public class Driver {
 
 
     @Column(unique = true, length = 100)
-    private String gatewayAccountId;
+    private String razorpayQrId;
 //    This is the reference to the razorpay linked account
 //    With this only we will link the account through KYC record
 
@@ -65,4 +65,8 @@ public class Driver {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+
+    @Column(length = 500)
+    private String qrImageUrl;
 }
