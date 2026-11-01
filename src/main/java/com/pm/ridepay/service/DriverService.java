@@ -58,6 +58,7 @@ public class DriverService {
         response.setVerificationStatus(driver.getVerificationStatus());
         response.setUpiId(driver.getUpiId());
         response.setIsActive(driver.getIsActive());
+        response.setQrImageUrl(driver.getQrImageUrl());
 
         return response;
     }
