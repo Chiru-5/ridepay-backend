@@ -19,4 +19,5 @@ public class DriverStatusResponse {
     private VerificationStatus verificationStatus;
     private String upiId;
     private Boolean isActive;
+    private String qrImageUrl;
 }
