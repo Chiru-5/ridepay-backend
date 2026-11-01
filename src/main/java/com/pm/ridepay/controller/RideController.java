@@ -4,6 +4,7 @@ package com.pm.ridepay.controller;
 
 import com.pm.ridepay.dto.request.AdjustRideRequest;
 import com.pm.ridepay.dto.request.StartRideRequest;
+import com.pm.ridepay.dto.response.RideHistoryItem;
 import com.pm.ridepay.dto.response.RideStatusResponse;
 import com.pm.ridepay.service.RideService;
 import jakarta.validation.Valid;
@@ -12,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+import java.util.List;
+
+
 @RequestMapping("/rides")
 @RequiredArgsConstructor
 public class RideController {
@@ -57,4 +60,22 @@ public class RideController {
         RideStatusResponse response=rideService.adjustRide(driverId, rideId, request);
         return ResponseEntity.ok(response);
     }
+
+
+//    This methods gives the active ride of a driver
+    @GetMapping("/active")
+    public ResponseEntity<RideStatusResponse> getActiveRide(){
+        Long driverId=getAuthenticatedDriverId();
+        return rideService.getActiveRide(driverId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+
+    @GetMapping("/history")
+    public ResponseEntity<List<RideHistoryItem>> getHistory(){
+        Long driverId=getAuthenticatedDriverId();
+        return ResponseEntity.ok(rideService.getHistory(driverId));
+    }
+
 }
