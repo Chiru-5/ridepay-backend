@@ -21,7 +21,7 @@ public class Driver {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String name;
 
     @Column(nullable = false, unique = true)
@@ -29,11 +29,11 @@ public class Driver {
     // Phone number is stored and this is used to send the OTP and OTP login
 
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String bankAccountNumber;
 
 
-    @Column(nullable = false, length = 11)
+    @Column(length = 11)
     private String ifscCode;
 
 
@@ -50,7 +50,7 @@ public class Driver {
     private Boolean isActive;
 // This field is for does the driver account is still active or not
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String upiId;
 
 
@@ -67,6 +67,6 @@ public class Driver {
     private LocalDateTime updatedAt;
 
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String qrImageUrl;
 }
