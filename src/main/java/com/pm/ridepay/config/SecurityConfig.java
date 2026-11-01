@@ -21,7 +21,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth->auth.requestMatchers("/auth/**", "/webhooks/**")
+                .authorizeHttpRequests(auth->auth.requestMatchers("/auth/**", "/webhooks/**", "/qr-images/**")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
