@@ -1,5 +1,6 @@
 package com.pm.ridepay.repository;
 
+import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.entity.Ride;
 import com.pm.ridepay.enums.RideStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,5 +20,7 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
 
     List<Ride> findByDriverIdOrderByStartedAtDesc(Long driverId);
+
+    Long driver(Driver driver);
 //    This covers the ride history/ day summary screen from UI flow
 }
