@@ -6,6 +6,7 @@ import com.razorpay.QrCode;
 import com.razorpay.RazorpayClient;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -14,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 
 @Service
+@Profile("razorpay")
 public class RazorpayGatewayService implements GatewayService{
 
 
