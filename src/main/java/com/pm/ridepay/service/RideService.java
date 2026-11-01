@@ -4,6 +4,7 @@ package com.pm.ridepay.service;
 import com.pm.ridepay.dto.request.AdjustRideRequest;
 import com.pm.ridepay.dto.request.StartRideRequest;
 import com.pm.ridepay.dto.response.PaymentDTO;
+import com.pm.ridepay.dto.response.RideHistoryItem;
 import com.pm.ridepay.dto.response.RideStatusResponse;
 import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.entity.Payment;
@@ -23,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,6 +85,26 @@ public class RideService {
 
         return toResponse(ride, payments);
     }
+
+
+//    This gives the all the active rides of a driver
+    public Optional<RideStatusResponse> getActiveRide(Long driverId){
+        return rideRepository.findByDriverIdAndStatus(driverId, RideStatus.ACTIVE)
+                .map(ride -> {
+                    List<Payment> payments=paymentRepository.findByRideId(ride.getId());
+                    return toResponse(ride, payments);
+                });
+    }
+
+//    This gives the history of a driver in descending order(i.e. latest to past)
+    public List<RideHistoryItem> getHistory(Long driverId){
+        return rideRepository.findByDriverIdOrderByStartedAtDesc(driverId).stream()
+                .map(r-> new RideHistoryItem(
+                        r.getId(), r.getTargetAmount(), r.getCollectedAmount(),
+                        r.getStatus(), r.getStartedAt()
+                )).toList();
+    }
+
 
 //    Called through controller
     public RideStatusResponse cancelRide(Long driverId, Long rideId){
