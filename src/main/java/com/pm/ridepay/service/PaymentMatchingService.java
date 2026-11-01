@@ -1,6 +1,7 @@
 package com.pm.ridepay.service;
 
 
+import com.pm.ridepay.dto.response.PaymentDTO;
 import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.entity.Payment;
 import com.pm.ridepay.entity.Ride;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -60,5 +62,13 @@ public class PaymentMatchingService {
 
         rideService.applyPaymentAndCheckCompletion(ride, amount);
         rideRepository.save(ride);
+    }
+
+
+    public List<PaymentDTO> getUnmatchedPayments(Long driverId){
+        return paymentRepository.findByDriverIdAndPaymentStatus(driverId, PaymentStatus.PENDING_UNASSIGNED)
+                .stream()
+                .map(p-> new PaymentDTO(p.getId(), p.getAmount(), p.getPayerUpiId(), p.getReceivedAt()))
+                .toList();
     }
 }
