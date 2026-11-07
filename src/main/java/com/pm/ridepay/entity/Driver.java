@@ -47,7 +47,7 @@ public class Driver {
 //    With this only we will link the account through KYC record
 
     @Column(nullable = false)
-    private Boolean isActive;
+    private Boolean isActive=true;
 // This field is for does the driver account is still active or not
 
     @Column(length = 100)
