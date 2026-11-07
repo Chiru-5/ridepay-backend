@@ -13,8 +13,10 @@ import com.pm.ridepay.exception.InvalidTokenException;
 import com.pm.ridepay.repository.DriverRepository;
 import com.pm.ridepay.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -30,10 +32,11 @@ public class AuthService {
         try {
             decodedToken= FirebaseAuth.getInstance()
                     .verifyIdToken(request.getFirebaseIdToken());
-        }
-        catch (FirebaseAuthException e){
-            throw new InvalidTokenException("Invalid or expired Firebase Token");
-        }
+        } catch (FirebaseAuthException e) {
+        log.warn("Firebase token verification failed: {} (code: {})",
+                e.getMessage(), e.getAuthErrorCode());
+        throw new InvalidTokenException("Invalid or expired Firebase Token");
+    }
 
         String phoneNumber=(String) decodedToken.getClaims().get("phone_number");
 
@@ -49,10 +52,11 @@ public class AuthService {
     }
 
 
-    private Driver createNewDriver(String phoneNumber){
-        Driver driver=new Driver();
+    private Driver createNewDriver(String phoneNumber) {
+        Driver driver = new Driver();
         driver.setPhoneNumber(phoneNumber);
         driver.setVerificationStatus(VerificationStatus.PENDING);
+        driver.setIsActive(true);
         return driverRepository.save(driver);
     }
 }
