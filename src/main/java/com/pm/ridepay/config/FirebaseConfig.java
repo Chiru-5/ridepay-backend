@@ -10,6 +10,7 @@ import com.google.firebase.FirebaseApp;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import com.google.api.client.http.javanet.NetHttpTransport;
 
 @Component
 public class FirebaseConfig {
@@ -25,6 +26,7 @@ public class FirebaseConfig {
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                    .setHttpTransport(new NetHttpTransport())
                     .build();
 
             FirebaseApp.initializeApp(options);
