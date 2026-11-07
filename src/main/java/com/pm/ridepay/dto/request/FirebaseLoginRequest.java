@@ -7,12 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@NotBlank
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class FirebaseLoginRequest {
 
+    @NotBlank
     private String firebaseIdToken;
 }
