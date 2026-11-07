@@ -1,5 +1,6 @@
 package com.pm.ridepay.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -66,6 +68,7 @@ public class GlobalExceptionHandler {
     // Catch-all fallback ---> 500 status code, never leaks internal details
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleUnexpected(Exception ex) {
+        log.error("Unhandled exception", ex);
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong. Please try again.");
     }
 
@@ -75,5 +78,11 @@ public class GlobalExceptionHandler {
         body.put("status", status.value());
         body.put("message", message);
         return ResponseEntity.status(status).body(body);
+    }
+
+
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResource(Exception ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Endpoint not found");
     }
 }
