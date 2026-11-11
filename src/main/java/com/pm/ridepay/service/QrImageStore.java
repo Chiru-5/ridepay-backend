@@ -15,7 +15,7 @@ public class QrImageStore {
 
     public String store(String id, byte[] pngBytes){
         images.put(id, pngBytes);
-        return "/qr-images"+ id;
+        return "/qr-images/"+ id;
     }
 
     public byte[] get(String id){
