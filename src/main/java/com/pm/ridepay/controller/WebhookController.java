@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-
+@RestController
 @RequestMapping("/webhooks")
 @RequiredArgsConstructor
 public class WebhookController {
@@ -25,7 +25,7 @@ public class WebhookController {
 
 
     @PostMapping("/payment")
-    public ResponseEntity<String> handlePaymentWebhook(@RequestBody String rawPayload, @RequestHeader("X- Razorpay-Signature") String signature){
+    public ResponseEntity<String> handlePaymentWebhook(@RequestBody String rawPayload, @RequestHeader("X-Razorpay-Signature") String signature){
         if(!gatewayService.verifyWebhookSignature(rawPayload, signature)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Signature");
         }
