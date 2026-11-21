@@ -16,6 +16,7 @@ import com.pm.ridepay.exception.*;
 import com.pm.ridepay.repository.DriverRepository;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ public class RideService {
     private final DriverRepository driverRepository;
     private final PaymentRepository paymentRepository;
 
-
+    @Transactional
     public RideStatusResponse startRide(Long driverId, StartRideRequest request){
 
 //        If the driver is not registered in the app then he can't start the ride.
@@ -107,8 +108,9 @@ public class RideService {
 
 
 //    Called through controller
+    @Transactional
     public RideStatusResponse cancelRide(Long driverId, Long rideId){
-        Ride ride=getOwnedRide(driverId, rideId);
+        Ride ride=getOwnedRideForUpdate(driverId, rideId);
 
         if(ride.getStatus()!=RideStatus.ACTIVE){
             throw new InvalidRideStateException("Only an Active ride can be cancelled");
@@ -125,8 +127,9 @@ public class RideService {
 
 
 //    It handles the two manual-correction paths we designed --> assigning a stray unmatched payments to this ride, or manually adjusting the count up/ down
+    @Transactional
     public RideStatusResponse adjustRide(Long driverId, Long rideId, AdjustRideRequest request){
-        Ride ride=getOwnedRide(driverId, rideId);
+        Ride ride=getOwnedRideForUpdate(driverId, rideId);
 
         if(ride.getStatus()!=RideStatus.ACTIVE){
             throw new InvalidRideStateException("Only an active ride can be adjusted");
@@ -239,5 +242,14 @@ public class RideService {
         return response;
     }
 
+    private Ride getOwnedRideForUpdate(Long driverId, Long rideId){
+        Ride ride = rideRepository.findByIdForUpdate(rideId)
+                .orElseThrow(()-> new RideNotFoundException("Ride not found"));
+
+        if(!ride.getDriver().getId().equals(driverId)){
+            throw new RideNotFoundException("Ride not found");
+        }
+        return ride;
+    }
 
 }

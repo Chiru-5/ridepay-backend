@@ -9,6 +9,7 @@ import com.pm.ridepay.enums.PaymentStatus;
 import com.pm.ridepay.enums.RideStatus;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,18 +26,25 @@ public class PaymentMatchingService {
     private final PaymentRepository paymentRepository;
     private final RideService rideService;
 
+    @Transactional
+    public void handleIncomingPayment(Driver driver, String gatewayTransactionId,
+                                      BigDecimal amount, String payerUpiId, String payerName) {
 
-    public void handleIncomingPayment(Driver driver, String gatewayTransactionId, BigDecimal amount,
-                                      String payerUpiId, String payerName){
-
-
-//     Idempotency check --> Here the request is stopped immediately if this exact transaction was already processed
-        if(paymentRepository.findByGatewayTransactionId(gatewayTransactionId).isPresent()){
+        if (paymentRepository.findByGatewayTransactionId(gatewayTransactionId).isPresent()) {
             return;
         }
 
-        Optional<Ride> activeRide=rideRepository.findByDriverIdAndStatus(driver.getId(), RideStatus.ACTIVE);
-        Payment payment=new Payment();
+        // Step 1: find the id only (a plain read: nothing is locked or cached yet)
+        Optional<Long> activeRideId =
+                rideRepository.findActiveRideId(driver.getId(), RideStatus.ACTIVE);
+
+        // Step 2: lock that one row by primary key, then re-check it under the lock
+        Ride ride = activeRideId
+                .flatMap(rideRepository::findByIdForUpdate)
+                .filter(r -> r.getStatus() == RideStatus.ACTIVE)
+                .orElse(null);
+
+        Payment payment = new Payment();
         payment.setDriver(driver);
         payment.setGatewayTransactionId(gatewayTransactionId);
         payment.setAmount(amount);
@@ -44,18 +52,13 @@ public class PaymentMatchingService {
         payment.setPayerName(payerName);
         payment.setReceivedAt(LocalDateTime.now());
 
-
-
-        if(activeRide.isEmpty()){
-
-//            No active ride right now ---> Then mark its as unmatched, driver assigns it later
+        if (ride == null) {
             payment.setRide(null);
             payment.setPaymentStatus(PaymentStatus.PENDING_UNASSIGNED);
             paymentRepository.save(payment);
             return;
         }
 
-        Ride ride= activeRide.get();
         payment.setRide(ride);
         payment.setPaymentStatus(PaymentStatus.MATCHED);
         paymentRepository.save(payment);
