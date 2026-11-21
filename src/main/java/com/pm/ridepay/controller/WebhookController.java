@@ -6,14 +6,16 @@ import com.pm.ridepay.repository.DriverRepository;
 import com.pm.ridepay.service.GatewayService;
 import com.pm.ridepay.service.PaymentMatchingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-
+@Slf4j
 @RestController
 @RequestMapping("/webhooks")
 @RequiredArgsConstructor
@@ -59,10 +61,17 @@ public class WebhookController {
             return ResponseEntity.ok("Driver not found for this code");
         }
 
-        paymentMatchingService.handleIncomingPayment(
-                driverOpt.get(), gatewayTransactionId, amount, payerUpiId, payerName
-        );
 
+        try{
+            paymentMatchingService.handleIncomingPayment(
+                    driverOpt.get(), gatewayTransactionId, amount, payerUpiId, payerName
+            );
+        }
+        catch (DataIntegrityViolationException e){
+            log.warn("Webhook {} hit a database constraint: {}",
+                    gatewayTransactionId, e.getMostSpecificCause().getMessage());
+            return ResponseEntity.ok("Duplicate");
+        }
         return ResponseEntity.ok("Processed");
     }
 }
