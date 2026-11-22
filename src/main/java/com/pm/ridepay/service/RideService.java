@@ -238,6 +238,9 @@ public class RideService {
         response.setPassengerCount(ride.getPassengerCount());
         response.setStatus(ride.getStatus());
         response.setPayments(paymentDTOS);
+        response.setFarePerPerson(ride.getFarePerPerson());
+        response.setStartedAt(ride.getStartedAt());
+        response.setCompletedAt(ride.getCompletedAt());
 
         return response;
     }
