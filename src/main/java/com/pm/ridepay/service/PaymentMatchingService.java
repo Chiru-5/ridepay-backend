@@ -7,6 +7,8 @@ import com.pm.ridepay.entity.Payment;
 import com.pm.ridepay.entity.Ride;
 import com.pm.ridepay.enums.PaymentStatus;
 import com.pm.ridepay.enums.RideStatus;
+import com.pm.ridepay.exception.InvalidRideStateException;
+import com.pm.ridepay.exception.PaymentNotFoundException;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
 import jakarta.transaction.Transactional;
@@ -73,5 +75,25 @@ public class PaymentMatchingService {
                 .stream()
                 .map(p-> new PaymentDTO(p.getId(), p.getAmount(), p.getPayerUpiId(), p.getReceivedAt()))
                 .toList();
+    }
+
+
+
+    @Transactional
+    public PaymentDTO ignorePayment(Long driverId, Long paymentId){
+        Payment payment=paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new PaymentNotFoundException("Payment not found"));
+
+        if(!payment.getDriver().getId().equals(driverId)){
+            throw new PaymentNotFoundException("Payment not found");
+        }
+
+        if(payment.getPaymentStatus()!=PaymentStatus.PENDING_UNASSIGNED){
+            throw new InvalidRideStateException("This payment is already assigned or ignored");
+        }
+
+        payment.setPaymentStatus(PaymentStatus.IGNORED);
+        paymentRepository.save(payment);
+        return new PaymentDTO(payment.getId(), payment.getAmount(), payment.getPayerUpiId(), payment.getReceivedAt());
     }
 }
