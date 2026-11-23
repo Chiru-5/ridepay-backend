@@ -2,6 +2,7 @@ package com.pm.ridepay.service;
 
 
 import com.pm.ridepay.dto.request.OnboardRequest;
+import com.pm.ridepay.dto.response.DriverProfileResponse;
 import com.pm.ridepay.dto.response.DriverStatusResponse;
 import com.pm.ridepay.entity.Driver;
 import com.pm.ridepay.enums.VerificationStatus;
@@ -62,5 +63,36 @@ public class DriverService {
 
         return response;
     }
+
+//    To get the details of a driver and display on the profile screen
+    public DriverProfileResponse getProfile(Long driverId){
+        Driver driver=driverRepository.findById(driverId)
+                .orElseThrow(()-> new DriverNotFoundException("Driver not found"));
+
+        DriverProfileResponse response=new DriverProfileResponse();
+        response.setDriverId(driver.getId());
+        response.setName(driver.getName());
+        response.setPhoneNumber(driver.getPhoneNumber());
+        response.setVehicleNumber(driver.getVehicleNumber());
+        response.setMaskedAccountNumber(maskAccountNumber(driver.getBankAccountNumber()));
+        response.setIfscCode(driver.getIfscCode());
+        response.setVerificationStatus(driver.getVerificationStatus());
+        response.setUpiId(driver.getUpiId());
+        return response;
+    }
+
+
+//    Used to mask the account number
+//    Only last four digits will be shown
+    private String maskAccountNumber(String account){
+        if(account==null){
+            return null;
+        }
+        if(account.length()<=4){
+            return "X".repeat(account.length());
+        }
+        return "X".repeat(account.length()-4)+account.substring(account.length()-4);
+    }
+
 
 }

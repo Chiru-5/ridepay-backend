@@ -2,6 +2,7 @@ package com.pm.ridepay.controller;
 
 
 import com.pm.ridepay.dto.request.OnboardRequest;
+import com.pm.ridepay.dto.response.DriverProfileResponse;
 import com.pm.ridepay.dto.response.DriverStatusResponse;
 import com.pm.ridepay.service.DriverService;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class DriverController {
 
     private final DriverService driverService;
+    private DriverProfileResponse driverProfileResponse;
 
 //    Onboarding the driver request
     @PostMapping("/onboard")
@@ -35,4 +37,11 @@ public class DriverController {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+
+//    API end point to fetch the profile-screen details
+    @GetMapping("/me")
+    public ResponseEntity<DriverProfileResponse> getProfile(){
+        Long driverId=getAuthenticatedDriverId();
+        return ResponseEntity.ok(driverService.getProfile(driverId));
+    }
 }
