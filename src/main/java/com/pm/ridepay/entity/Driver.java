@@ -69,4 +69,7 @@ public class Driver {
 
     @Column(columnDefinition = "TEXT")
     private String qrImageUrl;
+
+    @Column(length = 255) // fcm notification token
+    private String fcmToken;
 }

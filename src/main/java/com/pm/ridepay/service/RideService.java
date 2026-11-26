@@ -13,12 +13,14 @@ import com.pm.ridepay.enums.PaymentStatus;
 import com.pm.ridepay.enums.RideStatus;
 import com.pm.ridepay.enums.VerificationStatus;
 import com.pm.ridepay.exception.*;
+import com.pm.ridepay.notification.DriverNotificationEvent;
 import com.pm.ridepay.repository.DriverRepository;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -34,6 +36,7 @@ public class RideService {
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
     private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public RideStatusResponse startRide(Long driverId, StartRideRequest request){
@@ -164,6 +167,7 @@ public class RideService {
         if(ride.getCollectedAmount().compareTo(ride.getTargetAmount())>=0){
             ride.setStatus(RideStatus.COMPLETED);
             ride.setCompletedAt(LocalDateTime.now());
+            notifyRideComplete(ride);
         }
     }
 
@@ -201,6 +205,7 @@ public class RideService {
             ride.setStatus(RideStatus.COMPLETED);
             ride.setCompletedAt(LocalDateTime.now());
         }
+        notifyRideComplete(ride);
     }
 
 
@@ -255,4 +260,11 @@ public class RideService {
         return ride;
     }
 
+    private void notifyRideComplete(Ride ride){
+        eventPublisher.publishEvent(new DriverNotificationEvent(
+                ride.getDriver().getId(),
+                "Ride complete",
+                "₹"+ ride.getCollectedAmount().stripTrailingZeros().toPlainString() + " collected "
+        ));
+    }
 }

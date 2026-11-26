@@ -11,6 +11,7 @@ import com.pm.ridepay.exception.DriverNotFoundException;
 import com.pm.ridepay.repository.DriverRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -95,4 +96,19 @@ public class DriverService {
     }
 
 
+    @Transactional
+    public void saveDeviceToken(Long driverId, String token){
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(()-> new DriverNotFoundException("Driver not found"));
+
+
+        for(Driver other: driverRepository.findByFcmToken(token)){
+            if(!other.getId().equals(driverId)){
+                other.setFcmToken(null);
+                driverRepository.save(other);
+            }
+        }
+        driver.setFcmToken(token);
+        driverRepository.save(driver);
+    }
 }

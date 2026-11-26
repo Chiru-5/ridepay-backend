@@ -9,10 +9,12 @@ import com.pm.ridepay.enums.PaymentStatus;
 import com.pm.ridepay.enums.RideStatus;
 import com.pm.ridepay.exception.InvalidRideStateException;
 import com.pm.ridepay.exception.PaymentNotFoundException;
+import com.pm.ridepay.notification.DriverNotificationEvent;
 import com.pm.ridepay.repository.PaymentRepository;
 import com.pm.ridepay.repository.RideRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +29,7 @@ public class PaymentMatchingService {
     private final RideRepository rideRepository;
     private final PaymentRepository paymentRepository;
     private final RideService rideService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void handleIncomingPayment(Driver driver, String gatewayTransactionId,
@@ -58,6 +61,10 @@ public class PaymentMatchingService {
             payment.setRide(null);
             payment.setPaymentStatus(PaymentStatus.PENDING_UNASSIGNED);
             paymentRepository.save(payment);
+            eventPublisher.publishEvent(new DriverNotificationEvent(
+                    driver.getId(),
+                    "Payment received",
+                    "₹" + amount.stripTrailingZeros().toPlainString() + " arrived but no ride is waiting for it"));
             return;
         }
 

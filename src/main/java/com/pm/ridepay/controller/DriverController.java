@@ -1,6 +1,7 @@
 package com.pm.ridepay.controller;
 
 
+import com.pm.ridepay.dto.request.DeviceTokenRequest;
 import com.pm.ridepay.dto.request.OnboardRequest;
 import com.pm.ridepay.dto.response.DriverProfileResponse;
 import com.pm.ridepay.dto.response.DriverStatusResponse;
@@ -43,5 +44,12 @@ public class DriverController {
     public ResponseEntity<DriverProfileResponse> getProfile(){
         Long driverId=getAuthenticatedDriverId();
         return ResponseEntity.ok(driverService.getProfile(driverId));
+    }
+
+
+    @PutMapping("/me/device-token")
+    public ResponseEntity<Void> saveDeviceToken(@Valid @RequestBody DeviceTokenRequest request){
+        driverService.saveDeviceToken(getAuthenticatedDriverId(), request.getToken());
+        return ResponseEntity.noContent().build();
     }
 }
